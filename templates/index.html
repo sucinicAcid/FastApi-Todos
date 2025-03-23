@@ -4,15 +4,97 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>To-Do List</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7fa;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #todo-form {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            width: 200px;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #todo-list {
+            list-style: none;
+            padding: 0;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        li {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        li button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            font-size: 14px;
+            background-color: #dc3545;
+        }
+
+        li button:hover {
+            background-color: #c82333;
+        }
+
+        .edit-btn {
+            background-color: #28a745;
+        }
+
+        .edit-btn:hover {
+            background-color: #218838;
+        }
+    </style>
 </head>
 <body>
     <h1>To-Do List</h1>
-    <ul id="todo-list"></ul>
     <form id="todo-form">
         <input type="text" id="title" placeholder="Title" required>
         <input type="text" id="description" placeholder="Description" required>
-        <button type="submit">Add To-Do</button>
+        <button type="submit">Add</button>
     </form>
+    <ul id="todo-list"></ul>
+
     <script>
         async function fetchTodos() {
             const response = await fetch('/todos');
@@ -21,18 +103,19 @@
             todoList.innerHTML = '';
             todos.forEach(todo => {
                 const li = document.createElement('li');
-                li.textContent = `${todo.title}: ${todo.description} (Completed: ${todo.completed})`;
-                
+                li.innerHTML = `<span><strong>${todo.title}</strong>: ${todo.description} (Completed: ${todo.completed})</span>`;
+
                 const editButton = document.createElement('button');
                 editButton.textContent = 'Edit';
+                editButton.classList.add('edit-btn');
                 editButton.addEventListener('click', () => editTodo(todo));
 
                 const deleteButton = document.createElement('button');
                 deleteButton.textContent = 'Delete';
                 deleteButton.addEventListener('click', () => deleteTodo(todo.id));
-                
-                li.appendChild(editButton)
-                li.appendChild(deleteButton)
+
+                li.appendChild(editButton);
+                li.appendChild(deleteButton);
                 todoList.appendChild(li);
             });
         }
@@ -54,18 +137,20 @@
         });
 
         async function editTodo(todo) {
-            const title = prompt('Write new title');
-            const description = prompt('Write new description');
+            const title = prompt('Write new title', todo.title);
+            const description = prompt('Write new description', todo.description);
 
-            const response = await fetch(`/todos/${todo.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ id: todo.id, title, description, completed: todo.completed })
-            });
-            if (response.ok) {
-                fetchTodos();
+            if (title !== null && description !== null) {
+                const response = await fetch(`/todos/${todo.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: todo.id, title, description, completed: todo.completed })
+                });
+                if (response.ok) {
+                    fetchTodos();
+                }
             }
         }
 
