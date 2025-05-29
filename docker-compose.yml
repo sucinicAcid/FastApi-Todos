@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: fastapi-app
     ports:
-      - "5001:5001"
+      - "8000:8000"
     networks:
       - loadtest-net
 
@@ -57,16 +57,6 @@ services:
       - "7070:9090"
     networks:
       - loadtest-net
-  influxdb: 
-    image: influxdb:1.8.3 
-    ports: 
-      - '8086:8086' 
-    environment: 
-      - INFLUXDB_DB=test 
-      - INFLUXDB_ADMIN_USER=admin 
-      - INFLUXDB_ADMIN_PASSWORD=admin 
-    volumes: 
-      - influxdb:/var/lib/influxdb 
 
   grafana:
     image: grafana/grafana:latest
@@ -98,4 +88,3 @@ volumes:
   sonarqube_logs:
   sonarqube_extensions:
   grafana-data:
-  influxdb:
