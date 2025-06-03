@@ -3,49 +3,16 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import json
 import os
-from prometheus_fastapi_instrumentator import Instrumentator
 import logging
 import time
 from multiprocessing import Queue
 from os import getenv
 from fastapi import Request
-from logging_loki import LokiQueueHandler
+
 
 app = FastAPI()
 
-# Prometheus 메트릭스 엔드포인트 (/metrics)
-Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
-loki_logs_handler = LokiQueueHandler(
-    Queue(-1),
-    url=getenv("LOKI_ENDPOINT"),
-    tags={"application": "fastapi"},
-    version="1",
-)
-
-# Custom access logger (ignore Uvicorn's default logging)
-custom_logger = logging.getLogger("custom.access")
-custom_logger.setLevel(logging.INFO)
-
-# Add Loki handler (assuming `loki_logs_handler` is correctly configured)
-custom_logger.addHandler(loki_logs_handler)
-
-async def log_requests(request: Request, call_next):
-    start_time = time.time()
-    response = await call_next(request)
-    duration = time.time() - start_time  # Compute response time
-
-    log_message = (
-        f'{request.client.host} - "{request.method} {request.url.path} HTTP/1.1" {response.status_code} {duration:.3f}s'
-    )
-
-    # **Only log if duration exists**
-    if duration:
-        custom_logger.info(log_message)
-
-    return response
-
-app.middleware("http")(log_requests)
 
 ## To-Do 항목 모델 
 class TodoItem(BaseModel):
@@ -106,3 +73,8 @@ def read_root():
     with open("templates/index.html", "r") as file:
         content = file.read()
     return HTMLResponse(content=content)
+
+@app.delete("/todos", response_model=dict)
+def delete_all_todos():
+    save_todos([])  # 빈 리스트로 저장
+    return {"message": "All To-Do items deleted"}
