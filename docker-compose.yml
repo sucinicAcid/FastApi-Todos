@@ -12,6 +12,8 @@ services:
       - loki
     environment:
       - LOKI_ENDPOINT=http://loki:3100/loki/api/v1/push
+    networks:
+      - loadtest-net
 
   jmeter:
     build:
@@ -32,6 +34,8 @@ services:
       - -e
       - -o
       - /jmeter/report
+    networks:
+      - loadtest-net
 
   sonarqube:
     image: sonarqube:latest
@@ -45,6 +49,8 @@ services:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_logs:/opt/sonarqube/logs
       - sonarqube_extensions:/opt/sonarqube/extensions
+    networks:
+      - loadtest-net
 
   prometheus:
     image: prom/prometheus:latest
@@ -53,6 +59,8 @@ services:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "7070:9090"
+    networks:
+      - loadtest-net
 
   grafana:
     image: grafana/grafana:latest
@@ -63,12 +71,16 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
       - grafana-data:/var/lib/grafana
+    networks:
+      - loadtest-net
 
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
     ports:
       - "7100:9100"
+    networks:
+      - loadtest-net
 
   loki:
     image: grafana/loki:latest
@@ -77,6 +89,10 @@ services:
       - "3100:3100"  
     networks:
       - loadtest-net
+  
+networks:
+  loadtest-net:
+    driver: bridge
 
 volumes:
   sonarqube_conf:
